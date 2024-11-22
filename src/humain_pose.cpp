@@ -48,9 +48,16 @@ std::vector<cv::Point2f> detectPoseKeypoints(cv::dnn::Net& net, const cv::Mat& f
 
 
 
-bool isHandRaised(const std::vector<cv::Point2f>& keypoints) {
+bool isRightHandRaised(const std::vector<cv::Point2f>& keypoints) {
     if (keypoints[9].y > 0 && keypoints[5].y > 0) { // Poignet droit et épaule droite détectés
         return keypoints[9].y < keypoints[5].y;    // Poignet au-dessus de l'épaule
+    }
+    return false;
+}
+
+bool isLeftHandRaised(const std::vector<cv::Point2f>& keypoints) {
+    if (keypoints[10].y > 0 && keypoints[6].y > 0) { // Poignet droit et épaule droite détectés
+        return keypoints[10].y < keypoints[6].y;    // Poignet au-dessus de l'épaule
     }
     return false;
 }
@@ -65,12 +72,20 @@ bool isLeaning(const std::vector<cv::Point2f>& keypoints) {
 
 
 
-void drawKeypoints(cv::Mat& frame, const std::vector<cv::Point2f>& keypoints) {
+void drawKeypoints(cv::Mat& frame, const std::vector<cv::Point2f>& keypoints, const std::vector<std::pair<int, int>>& skeleton) {
     for (int i = 0; i != (int) keypoints.size(); i++){
         const auto& point = keypoints[i];
         if (point.x > 0 && point.y > 0) {
             cv::circle(frame, point, 5, cv::Scalar(0, 255, 0), -1);
             cv::putText(frame, std::to_string(i), point, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
+        }
+    }
+
+     for (const auto& connection : skeleton) {
+        const auto& p1 = keypoints[connection.first];
+        const auto& p2 = keypoints[connection.second];
+        if (p1.x > 0 && p1.y > 0 && p2.x > 0 && p2.y > 0) {
+            cv::line(frame, p1, p2, cv::Scalar(255, 0, 0), 2);
         }
     }
 }
@@ -84,6 +99,11 @@ void displayGesture(cv::Mat& frame, const std::string& gesture) {
 int main() {
     cv::dnn::Net poseNet = loadPoseNet();
     cv::VideoCapture cap(0);
+    std::vector<std::pair<int, int>> skeleton = {
+        {0, 1}, {1, 2}, {2, 3}, {3, 7}, {0, 5}, {5, 6}, {6, 8},
+        {5, 11}, {6, 12}, {11, 12}, {11, 13}, {13, 15}, {12, 14}, {14, 16}
+    };
+
 
     if (!cap.isOpened()) {
         std::cerr << "Erreur : Impossible d'ouvrir la caméra." << std::endl;
@@ -103,11 +123,15 @@ int main() {
 
         // Vérifier les gestes
         std::string gesture = "Aucun";
-        if (isHandRaised(keypoints)) gesture = "Main levee";
+        
+        
+        if (isRightHandRaised(keypoints)) gesture = "Main droite levee";
+        if (isLeftHandRaised(keypoints)) gesture = "Main gauche levee";
+        if (isRightHandRaised(keypoints) && isLeftHandRaised(keypoints)) gesture = gesture = "Deux mains levee";
         if (isLeaning(keypoints)) gesture = "Inclinaison";
 
         // Dessiner les points clés et afficher le geste
-        drawKeypoints(frame, keypoints);
+        drawKeypoints(frame, keypoints, skeleton);
         displayGesture(frame, gesture);
 
         cv::imshow("PoseNet Gestures", frame);
