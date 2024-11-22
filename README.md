@@ -31,6 +31,8 @@ PoseNet détecte jusqu’à **17 points clés** sur le corps humain. Voici une d
 | 15        | **Left Ankle**             | Cheville gauche.                                             |
 | 16        | **Right Ankle**            | Cheville droite.                                             |
 
+
+
 ---
 
 ### **Utilisation des points clés**
