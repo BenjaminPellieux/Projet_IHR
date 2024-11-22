@@ -12,6 +12,25 @@
 
 extern std::mutex frameMutex;   // Déclaration globale
 
+enum class Status {
+    FOLLOW,
+    STOP,
+    BLOCK,
+    ERROR,
+    DANCE
+};
+
+
+enum class Movement {
+    HANDS_UP,
+    HAND_RIGHT,
+    HAND_LEFT,
+    TILT_RIGHT,
+    TILT_LEFT,
+    NONE,
+};
+
+
 // Classe pour gérer les threads
 class ThreadManager {
 public:
@@ -44,11 +63,15 @@ private:
     cv::dnn::Net net;  // PoseNet model
     std::vector<cv::Point2f> keypoints;  // Detected keypoints
     std::vector<std::pair<int, int>> skeleton;  // Pose skeleton connections
+    Movement gesture;
 
     // Helper methods
     void detectKeypoints(const cv::Mat& frame);
-    void analyzePose(std::string& gesture);
+    void analyzePose();
+    void setGesture(Movement newMove);
+
     void drawKeypoints(cv::Mat& frame);
+    std::string getMovementAsString();
 };
 
 
@@ -57,9 +80,43 @@ class YoloNet {
 public:
     YoloNet(const std::string& cfgPath, const std::string& weightsPath);
     void detectHumans(const cv::Mat& frame, cv::Mat& displayFrame);
+    void change_origin(const cv::Mat& frame);
+    cv::Point getBody();
 
 private:
     cv::dnn::Net net;
+    cv::Rect body;
 };
+
+class Rover {
+    public:
+
+        Rover(Status initialStatus = Status::STOP) : status(initialStatus) {}
+
+        Status getStatus() const {
+            return status;
+        }
+        void setStatus(Status newStatus) {
+            status = newStatus;
+        }
+
+        // Get the status as a string for easier display
+        std::string getStatusAsString() const {
+            switch (status) {
+                case Status::FOLLOW: return "FOLLOW";
+                case Status::STOP: return "STOP";
+                case Status::BLOCK: return "BLOCK";
+                case Status::ERROR: return "ERROR";
+                case Status::DANCE: return "DANCE";
+                default: return "UNKNOWN";
+            }
+        }
+
+    private:
+        Status status;  // Private member to hold the rover's status
+
+
+};
+
 
 #endif

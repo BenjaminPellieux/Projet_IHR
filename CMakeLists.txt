@@ -33,7 +33,7 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ./bin)
 
 # Ajouter l'exécutable
-add_executable(main src/main.cpp src/humain_pose.cpp)
+add_executable(main src/main.cpp src/body_pose.cpp src/body_move.cpp)
 #add_executable(main src/main.cpp )
 
 # Ajouter les définitions

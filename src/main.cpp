@@ -24,6 +24,9 @@ int main() {
         threadManager.runThread(&YoloNet::detectHumans, &yoloNet, std::ref(frame), std::ref(displayFrame));
 
         threadManager.waitForThreads();
+
+
+        
         cv::imshow("Détection combinée", displayFrame);
 
         if (cv::waitKey(1) == 'q') break;
