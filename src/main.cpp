@@ -5,6 +5,7 @@ std::mutex frameMutex;  // Define the global mutex
 int main(int argc, char** argv) {
     bool disableDisplay = false;
 
+
     // Check for command-line arguments
     if (argc > 1) {
         std::string arg = argv[1];
@@ -28,7 +29,14 @@ int main(int argc, char** argv) {
     }
 
     cv::Mat frame, displayFrame;
+    int frameCount = 0;
+    double totalProcessingTime = 0.0;
+
+    auto startTime = std::chrono::steady_clock::now();
     while (true) {
+
+        auto frameStart = std::chrono::steady_clock::now(); // Temps de début pour une image
+
         cap >> frame;
         if (frame.empty()) break;
 
@@ -42,11 +50,33 @@ int main(int argc, char** argv) {
 
         myRover->updateStatusfromMove(poseNet.getGesture(), yoloNet.getBody());
 
+
+        auto frameEnd = std::chrono::steady_clock::now(); // Utilisation cohérente de steady_clock
+        double frameProcessingTime = std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd - frameStart).count();
+        totalProcessingTime += frameProcessingTime;
+        frameCount++;
+
+        // Afficher FPS toutes les 30 images
+        if (frameCount % 30 == 0) {
+            auto currentTime = std::chrono::steady_clock::now();
+            double elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+            double fps = frameCount / elapsedTime;
+
+            std::cout << "Temps par image : " << frameProcessingTime << " ms, FPS : " << fps << std::endl;
+        }
+
         if (!disableDisplay) {
             cv::imshow("Détection combinée", displayFrame);
             if (cv::waitKey(1) == 'q') break;
         }
     }
+
+
+  // Calculer les statistiques finales
+    double averageProcessingTime = totalProcessingTime / frameCount;
+    std::cout << "Temps moyen par image : " << averageProcessingTime << " ms" << std::endl;
+    std::cout << "Images traitées : " << frameCount << std::endl;
+
 
     cap.release();
     if (!disableDisplay) {
