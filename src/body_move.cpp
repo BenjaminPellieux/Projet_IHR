@@ -1,6 +1,8 @@
 #include "main.hpp"
 
 
+
+
 PoseNet::PoseNet(const std::string& modelPath) {
     net = cv::dnn::readNetFromONNX(modelPath);
     if (net.empty()) {
@@ -98,4 +100,8 @@ void PoseNet::drawKeypoints(cv::Mat& frame) {
             cv::line(frame, p1, p2, cv::Scalar(255, 0, 0), 2);
         }
     }
+}
+
+Movement PoseNet::getGesture(){
+    return gesture;
 }

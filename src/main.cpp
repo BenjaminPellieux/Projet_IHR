@@ -2,10 +2,25 @@
 
 std::mutex frameMutex;  // Define the global mutex
 
-int main() {
+int main(int argc, char** argv) {
+    bool disableDisplay = false;
+
+    // Check for command-line arguments
+    if (argc > 1) {
+        std::string arg = argv[1];
+        if (arg == "--no-display" || arg == "-nd") {
+            disableDisplay = true;
+        }
+    }
+
     PoseNet poseNet("model/Posenet-Mobilenet.onnx");
     YoloNet yoloNet("model/yolov4-tiny.cfg", "model/yolov4-tiny.weights");
-    cv::namedWindow("Détection combinée", cv::WINDOW_NORMAL);
+    Rover* myRover = new Rover();
+
+    if (!disableDisplay) {
+        cv::namedWindow("Détection combinée", cv::WINDOW_NORMAL);
+    }
+
     cv::VideoCapture cap(0);
     if (!cap.isOpened()) {
         std::cerr << "Erreur : Impossible d'ouvrir la caméra !" << std::endl;
@@ -25,14 +40,18 @@ int main() {
 
         threadManager.waitForThreads();
 
+        myRover->updateStatusfromMove(poseNet.getGesture(), yoloNet.getBody());
 
-        
-        cv::imshow("Détection combinée", displayFrame);
-
-        if (cv::waitKey(1) == 'q') break;
+        if (!disableDisplay) {
+            cv::imshow("Détection combinée", displayFrame);
+            if (cv::waitKey(1) == 'q') break;
+        }
     }
 
     cap.release();
-    cv::destroyAllWindows();
+    if (!disableDisplay) {
+        cv::destroyAllWindows();
+    }
+
     return 0;
 }

@@ -33,8 +33,10 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ./bin)
 
 # Ajouter l'exécutable
-add_executable(main src/main.cpp src/body_pose.cpp src/body_move.cpp)
-#add_executable(main src/main.cpp )
+add_executable(main src/main.cpp 
+                    src/body_pose.cpp 
+                    src/body_move.cpp 
+                    src/rover_control.cpp)
 
 # Ajouter les définitions
 target_compile_definitions(main PRIVATE MODEL_PATH="${MODEL_DIR}")

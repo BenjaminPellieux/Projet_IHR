@@ -15,18 +15,18 @@ extern std::mutex frameMutex;   // Déclaration globale
 enum class Status {
     FOLLOW,
     STOP,
-    BLOCK,
-    ERROR,
-    DANCE
+    DANCE,
+    PARKING,
+    ERROR
 };
 
 
 enum class Movement {
-    HANDS_UP,
-    HAND_RIGHT,
-    HAND_LEFT,
-    TILT_RIGHT,
-    TILT_LEFT,
+    HANDS_UP, // DANCE
+    HAND_RIGHT, // STOP
+    HAND_LEFT, // FOLLOW
+    TILT_RIGHT, //PARKING
+    TILT_LEFT, // TBD
     NONE,
 };
 
@@ -58,6 +58,7 @@ public:
 
     // Process a frame, detect pose, analyze gestures, and draw on the frame
     void processFrame(const cv::Mat& frame, cv::Mat& displayFrame);
+    Movement getGesture();
 
 private:
     cv::dnn::Net net;  // PoseNet model
@@ -69,6 +70,7 @@ private:
     void detectKeypoints(const cv::Mat& frame);
     void analyzePose();
     void setGesture(Movement newMove);
+
 
     void drawKeypoints(cv::Mat& frame);
     std::string getMovementAsString();
@@ -91,29 +93,20 @@ private:
 class Rover {
     public:
 
-        Rover(Status initialStatus = Status::STOP) : status(initialStatus) {}
+        Rover();
+        void updateStatusfromMove(Movement gesture, cv::Point target);
 
-        Status getStatus() const {
-            return status;
-        }
-        void setStatus(Status newStatus) {
-            status = newStatus;
-        }
-
-        // Get the status as a string for easier display
-        std::string getStatusAsString() const {
-            switch (status) {
-                case Status::FOLLOW: return "FOLLOW";
-                case Status::STOP: return "STOP";
-                case Status::BLOCK: return "BLOCK";
-                case Status::ERROR: return "ERROR";
-                case Status::DANCE: return "DANCE";
-                default: return "UNKNOWN";
-            }
-        }
 
     private:
+
+        void setStatus(Status newStatus);
+        Status getStatus();
+        std::string getStatusAsString();
+
+        // Get the status as a string for easier display
+        cv::Point target;
         Status status;  // Private member to hold the rover's status
+        
 
 
 };
