@@ -56,9 +56,11 @@ void YoloNet::detectHumans(const cv::Mat& frame, cv::Mat& displayFrame) {
     if (bestConfidence > 0.6) {
         body = bestBox;
         this->change_origin(frame);
-        std::string label = "BODY: " + std::to_string(bestConfidence * 100).substr(0, 5) + "%";
-        cv::rectangle(displayFrame, bestBox, cv::Scalar(255, 0, 0), 2);
-        cv::putText(displayFrame, label, cv::Point(bestBox.x, bestBox.y - 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0), 2);
+        if(! disableDisplay){
+            std::string label = "BODY: " + std::to_string(bestConfidence * 100).substr(0, 5) + "%";
+            cv::rectangle(displayFrame, bestBox, cv::Scalar(255, 0, 0), 2);
+            cv::putText(displayFrame, label, cv::Point(bestBox.x, bestBox.y - 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0), 2);
+        }
     }else{
         body.x = -1; body.y = -1;
     }

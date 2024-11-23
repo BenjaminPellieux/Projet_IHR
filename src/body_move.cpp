@@ -24,8 +24,10 @@ void PoseNet::processFrame(const cv::Mat& frame, cv::Mat& displayFrame) {
 
     {
         std::lock_guard<std::mutex> lock(frameMutex);
-        drawKeypoints(displayFrame);
-        cv::putText(displayFrame, "Geste : " + gesture_string, cv::Point(50, 50), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 255), 2);
+        if (! disableDisplay){
+            drawKeypoints(displayFrame);
+            cv::putText(displayFrame, "Geste : " + gesture_string, cv::Point(50, 50), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 255), 2);
+        }
     }
 }
 

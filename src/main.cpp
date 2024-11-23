@@ -1,10 +1,9 @@
 #include "include/main.hpp"
 
 std::mutex frameMutex;  // Define the global mutex
+bool disableDisplay = false;
 
 int main(int argc, char** argv) {
-    bool disableDisplay = false;
-
 
     // Check for command-line arguments
     if (argc > 1) {

@@ -12,7 +12,7 @@
 #include "utils.hpp"
 
 extern std::mutex frameMutex;   // Déclaration globale
-
+extern bool disableDisplay;
 
 
 
