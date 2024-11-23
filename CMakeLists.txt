@@ -45,7 +45,7 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64")
     message(STATUS "Architecture ARM détectée : Activation des optimisations spécifiques au Raspberry Pi")
 
     # Optimisations pour ARM (Raspberry Pi 4 - Cortex-A72)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a+crc -mtune=cortex-a72 -mfpu=neon-fp-armv8")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a+crc -mtune=cortex-a72")
 
     # Optionnel : Activer OpenCV avec des optimisations SIMD (si compatible)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_NEON -DENABLE_VFPV4")
