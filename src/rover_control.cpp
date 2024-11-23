@@ -1,51 +1,44 @@
-#include "include/main.hpp"
+#include "main.hpp"
 
 
-Rover::Rover(){
-    status = Status::STOP;
-    target = (cv::Point) {0, 0};
+RoverControl::RoverControl(int fwdPin, int turnPin)
+    : fwdPin(fwdPin), turnPin(turnPin), Yval(fwdIdle), Xval(trnIdle) {}
+
+void RoverControl::initialize() {
+    wiringPiSetup(); // Initialize wiringPi library
+    softPwmCreate(fwdPin, 0, 200); // Create PWM for forward/backward control
+    softPwmCreate(turnPin, 0, 200); // Create PWM for turning control
+    Yval = fwdIdle; // Set initial values to neutral
+    Xval = trnIdle;
 }
 
-void Rover::setStatus(Status newStatus) {
-    status = newStatus;
-}
+void RoverControl::updateControl(const Rover& rover) {
+    // Map target vector to speed and direction
+    auto target = rover.getTarget();
 
-Status Rover::getStatus(){
-    return status;
-}
-
-
-std::string Rover::getStatusAsString() {
-    switch (status) {
-        case Status::FOLLOW: return "FOLLOW";
-        case Status::STOP: return "STOP";
-        case Status::DANCE: return "DANCE";
-        case Status::PARKING: return "PARKING";
-        case Status::ERROR: return "ERROR";
-        default: return "UNKNOWN";
-    }
-}
-
-void Rover::updateStatusfromMove(Movement gesture, cv::Point new_target) {
-    Status oldStatus = status; // Sauvegarder l'ancien statut
-    cv::Point oldTarget = target; // Sauvegarder l'ancien point cible
-
-    // Mettre à jour le statut en fonction du geste détecté
-    switch (gesture) {
-        case Movement::HANDS_UP: setStatus(Status::DANCE); break;
-        case Movement::HAND_RIGHT: setStatus(Status::STOP); break;
-        case Movement::HAND_LEFT: setStatus(Status::FOLLOW); break;
-        case Movement::TILT_RIGHT: setStatus(Status::PARKING); break;
-        case Movement::TILT_LEFT: setStatus(Status::ERROR); break;
-        default: break; // Pas de changement
+    // Map Yval (forward/backward)
+    if (target.y > 0) {
+        Yval = std::min(1000, fwdIdle + static_cast<int>(target.y * 500)); // Scale and cap
+    } else if (target.y < 0) {
+        Yval = std::max(1, fwdIdle + static_cast<int>(target.y * 500)); // Scale and cap
+    } else {
+        Yval = fwdIdle; // Neutral position
     }
 
-    target = new_target;
-
-    // Imprimer uniquement si le statut ou la cible a changé
-    if (status != oldStatus || target != oldTarget) {
-        std::cout << "INFO: Status: " << getStatusAsString() 
-                  << "\nTarget: x" << target.x 
-                  << " y" << target.y << std::endl;
+    // Map Xval (turning)
+    if (target.x > 0) {
+        Xval = std::min(1000, trnIdle + static_cast<int>(target.x * 500)); // Scale and cap
+    } else if (target.x < 0) {
+        Xval = std::max(1, trnIdle + static_cast<int>(target.x * 500)); // Scale and cap
+    } else {
+        Xval = trnIdle; // Neutral position
     }
+
+    // Apply updated values to motors
+    applyValues();
+}
+
+void RoverControl::applyValues() {
+    softPwmWrite(fwdPin, map(Yval, 1, 1000, 0, 179)); // Map to servo range
+    softPwmWrite(turnPin, map(Xval, 1, 1000, 179, 0)); // Map to servo range
 }

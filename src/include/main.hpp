@@ -9,6 +9,9 @@
 #include <vector>
 #include <string>
 #include <chrono>
+#include <wiringPi.h>
+#include <softPwm.h>
+
 #include "utils.hpp"
 
 extern std::mutex frameMutex;   // Déclaration globale
@@ -67,13 +70,32 @@ class YoloNet {
 public:
     YoloNet(const std::string& cfgPath, const std::string& weightsPath);
     void detectHumans(const cv::Mat& frame, cv::Mat& displayFrame);
-    void change_origin(const cv::Mat& frame);
-    cv::Point getBody();
+    void changeoOrigin(const cv::Mat& frame);
+    void drawBodyBox(cv::Mat& displayFrame, float bestConfidence, cv::Rect bestBox);
+    std::pair<int, int> getBody();
 
 private:
     cv::dnn::Net net;
     cv::Rect body;
 };
+
+
+class RoverControl {
+    public:
+        RoverControl(int fwdPin, int turnPin);
+        void initialize();
+        void updateControl(const Rover& rover);
+
+    private:
+        int fwdPin;
+        int turnPin;
+        int Yval;
+        int Xval;
+        const int fwdIdle = 500; // Neutral position for forward/backward
+        const int trnIdle = 500; // Neutral position for turning
+        void applyValues();
+};
+
 
 class Rover {
     public:
@@ -89,7 +111,7 @@ class Rover {
         std::string getStatusAsString();
 
         // Get the status as a string for easier display
-        cv::Point target;
+        std::pair<int, int> target; 
         Status status;  // Private member to hold the rover's status
         
 

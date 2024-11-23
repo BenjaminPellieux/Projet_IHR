@@ -58,7 +58,8 @@ endif()
 add_executable(main src/main.cpp 
                     src/body_pose.cpp 
                     src/body_move.cpp 
-                    src/rover_control.cpp)
+                    src/rover_control.cpp
+                    src/rover_status.cpp)
 
 
 
