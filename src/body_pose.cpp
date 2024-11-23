@@ -1,5 +1,4 @@
-#include "main.hpp"
-
+#include "include/main.hpp"
 
 // Charge le modèle YOLO
 YoloNet::YoloNet(const std::string& cfgPath, const std::string& weightsPath) {

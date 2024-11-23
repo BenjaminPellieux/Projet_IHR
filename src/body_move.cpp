@@ -1,4 +1,4 @@
-#include "main.hpp"
+#include "include/main.hpp"
 
 
 
@@ -8,9 +8,9 @@ PoseNet::PoseNet(const std::string& modelPath) {
     if (net.empty()) {
         throw std::runtime_error("Erreur : Impossible de charger le modèle PoseNet.");
     }
-    net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
-    net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
 
+    net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
+    net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
     // Define the skeleton connections
     skeleton = {{10, 8}, {8, 6}, {6, 5}, {6, 12}, {5, 11}, {5, 7},
                 {7, 9}, {11, 12}, {12, 14}, {14, 16}, {11, 13}, {13, 15}

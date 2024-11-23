@@ -8,27 +8,11 @@
 #include <mutex>
 #include <vector>
 #include <string>
-
+#include "utils.hpp"
 
 extern std::mutex frameMutex;   // Déclaration globale
 
-enum class Status {
-    FOLLOW,
-    STOP,
-    DANCE,
-    PARKING,
-    ERROR
-};
 
-
-enum class Movement {
-    HANDS_UP, // DANCE
-    HAND_RIGHT, // STOP
-    HAND_LEFT, // FOLLOW
-    TILT_RIGHT, //PARKING
-    TILT_LEFT, // TBD
-    NONE,
-};
 
 
 // Classe pour gérer les threads

@@ -1,4 +1,4 @@
-#include "main.hpp"
+#include "include/main.hpp"
 
 std::mutex frameMutex;  // Define the global mutex
 
