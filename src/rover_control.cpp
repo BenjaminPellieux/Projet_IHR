@@ -38,6 +38,6 @@ void Rover::updateStatusfromMove(Movement gesture, cv::Point new_target){
     target = new_target;
 
     std::cout<<"INFO: Status: " << getStatusAsString() 
-             << "Target: x" << target.x 
-             << "y" << target.y << std::end;
+             << "\nTarget: x" << target.x 
+             << "y" << target.y << std::endl;
 }
