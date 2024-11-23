@@ -54,7 +54,7 @@ void YoloNet::detectHumans(const cv::Mat& frame, cv::Mat& displayFrame) {
     }
 
     // Draw the best box on the display frame
-    if (bestConfidence > 0.8) {
+    if (bestConfidence > 0.6) {
         body = bestBox;
         this->change_origin(frame);
         std::string label = "BODY: " + std::to_string(bestConfidence * 100).substr(0, 5) + "%";

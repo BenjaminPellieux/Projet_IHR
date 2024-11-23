@@ -58,16 +58,32 @@ void PoseNet::setGesture(Movement newMove){
 }
 
 void PoseNet::analyzePose() {
-    if ((keypoints[9].y > 0 && keypoints[5].y > 0 && keypoints[9].y < keypoints[5].y) && 
+    // Detect hands raised
+    if ((keypoints[9].y > 0 && keypoints[5].y > 0 && keypoints[9].y < keypoints[5].y) &&
         (keypoints[10].y > 0 && keypoints[6].y > 0 && keypoints[10].y < keypoints[6].y)) {
-        this->setGesture(Movement::HANDS_UP);
+        this->setGesture(Movement::HANDS_UP);  // Both hands raised
 
+    // Detect left hand raised
     } else if (keypoints[9].y > 0 && keypoints[5].y > 0 && keypoints[9].y < keypoints[5].y) {
         this->setGesture(Movement::HAND_LEFT);
 
+    // Detect right hand raised
     } else if (keypoints[10].y > 0 && keypoints[6].y > 0 && keypoints[10].y < keypoints[6].y) {
         this->setGesture(Movement::HAND_RIGHT);
 
+    // Detect tilt right
+    } else if (keypoints[5].x > 0 && keypoints[6].x > 0 &&
+               keypoints[11].x > 0 && keypoints[12].x > 0 && 
+               (keypoints[5].y - keypoints[6].y) > 50) {  // Right shoulder significantly higher
+        this->setGesture(Movement::TILT_RIGHT);
+
+    // Detect tilt left
+    } else if (keypoints[5].x > 0 && keypoints[6].x > 0 &&
+               keypoints[11].x > 0 && keypoints[12].x > 0 && 
+               (keypoints[6].y - keypoints[5].y) > 50) {  // Left shoulder significantly higher
+        this->setGesture(Movement::TILT_LEFT);
+
+    // No specific gesture detected
     } else {
         this->setGesture(Movement::NONE);
     }
