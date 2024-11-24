@@ -14,7 +14,7 @@ std::pair<int, int> YoloNet::getBody(){
     return (std::pair<int, int>) {body.x, body.y};
 };
 
-void YoloNet::change_origin(const cv::Mat& frame)
+void YoloNet::changeOrigin(const cv::Mat& frame)
 {
     this->body.y = frame.rows - this->body.y;
     this->body.x -= frame.cols / 2;
@@ -55,7 +55,7 @@ void YoloNet::detectHumans(const cv::Mat& frame, cv::Mat& displayFrame) {
     // Draw the best box on the display frame
     if (bestConfidence > 0.6) {
         body = bestBox;
-        this->change_origin(frame);
+        this->changeOrigin(frame);
     }else{
         body.x = -1; body.y = -1;
     }

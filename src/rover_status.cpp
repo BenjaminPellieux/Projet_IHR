@@ -14,6 +14,9 @@ Status Rover::getStatus(){
     return status;
 }
 
+std::pair<int, int> Rover::getTarget(){
+    return target;
+}
 
 std::string Rover::getStatusAsString() {
     switch (status) {
@@ -45,7 +48,7 @@ void Rover::updateStatusfromMove(Movement gesture, std::pair<int, int> new_targe
     // Imprimer uniquement si le statut ou la cible a changé
     if (status != oldStatus || target != oldTarget) {
         std::cout << "INFO: Status: " << getStatusAsString() 
-                  << "\nTarget: x" << target.x 
-                  << " y" << target.y << std::endl;
+                  << "\nTarget: x" << target.first 
+                  << " y" << target.second << std::endl;
     }
 }

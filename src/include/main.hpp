@@ -70,7 +70,7 @@ class YoloNet {
 public:
     YoloNet(const std::string& cfgPath, const std::string& weightsPath);
     void detectHumans(const cv::Mat& frame, cv::Mat& displayFrame);
-    void changeoOrigin(const cv::Mat& frame);
+    void changeOrigin(const cv::Mat& frame);
     void drawBodyBox(cv::Mat& displayFrame, float bestConfidence, cv::Rect bestBox);
     std::pair<int, int> getBody();
 
@@ -80,29 +80,13 @@ private:
 };
 
 
-class RoverControl {
-    public:
-        RoverControl(int fwdPin, int turnPin);
-        void initialize();
-        void updateControl(const Rover& rover);
-
-    private:
-        int fwdPin;
-        int turnPin;
-        int Yval;
-        int Xval;
-        const int fwdIdle = 500; // Neutral position for forward/backward
-        const int trnIdle = 500; // Neutral position for turning
-        void applyValues();
-};
-
 
 class Rover {
     public:
 
         Rover();
-        void updateStatusfromMove(Movement gesture, cv::Point target);
-
+        void updateStatusfromMove(Movement gesture, std::pair<int, int> target);
+        std::pair<int, int> getTarget();
 
     private:
 
@@ -117,6 +101,24 @@ class Rover {
 
 
 };
+
+
+class RoverControl {
+    public:
+        RoverControl(int fwdPin, int turnPin);
+        void initialize();
+        void updateControl(std::pair<int, int> target);
+
+    private:
+        int fwdPin;
+        int turnPin;
+        int Yval;
+        int Xval;
+        const int fwdIdle = 500; // Neutral position for forward/backward
+        const int trnIdle = 500; // Neutral position for turning
+        void applyValues();
+};
+
 
 
 #endif
