@@ -1,34 +1,42 @@
 #include "include/main.hpp"
 
 
-RoverControl::RoverControl(int fwdPin, int turnPin)
-    : fwdPin(fwdPin), turnPin(turnPin), Yval(fwdIdle), Xval(trnIdle) {}
+RoverControl::RoverControl(int fwdPin, int turnPin){
+    this->fwdPin = fwdPin;
+    this->turnPin = turnPin;
+    Yval = fwdIdle; Xval = trnIdle; 
 
-void RoverControl::initialize() {
     wiringPiSetupGpio(); // Initialize wiringPi library
+    pinMode(fwdPin, PWM_OUTPUT);
+    pinMode(turnPin, PWM_OUTPUT);
     softPwmCreate(fwdPin, 0, 200); // Create PWM for forward/backward control
     softPwmCreate(turnPin, 0, 200); // Create PWM for turning control
-    Yval = fwdIdle; // Set initial values to neutral
-    Xval = trnIdle;
+}
+
+
+RoverControl::~RoverControl() {
+    softPwmWrite(fwdPin, 0); // Désactiver le PWM
+    softPwmWrite(turnPin, 0);
+    std::cout << "Nettoyage des ressources GPIO." << std::endl;
 }
 
 void RoverControl::updateControl(std::pair<int, int>  target) {
     // Map target vector to speed and direction
     
     // Map Yval (forward/backward)
-    if (target.second > 0) {
-        Yval = std::min(1000, fwdIdle + static_cast<int>(target.second * 500)); // Scale and cap
+    if (target.second > 50) {
+        Yval = std::min(1000, (int) fwdIdle + (target.second * 500)); // Scale and cap
     } else if (target.second < 0) {
-        Yval = std::max(1, fwdIdle + static_cast<int>(target.second * 500)); // Scale and cap
+        Yval = std::max(1,  (int) fwdIdle + (target.second * 500)); // Scale and cap
     } else {
         Yval = fwdIdle; // Neutral position
     }
 
     // Map Xval (turning)
     if (target.first > 0) {
-        Xval = std::min(1000, trnIdle + static_cast<int>(target.first * 500)); // Scale and cap
+        Xval = std::min(1000, (int) trnIdle + (target.first * 500)); // Scale and cap
     } else if (target.first < 0) {
-        Xval = std::max(1, trnIdle + static_cast<int>(target.first * 500)); // Scale and cap
+        Xval = std::max(1, (int) trnIdle + (target.first * 500)); // Scale and cap
     } else {
         Xval = trnIdle; // Neutral position
     }
@@ -37,11 +45,15 @@ void RoverControl::updateControl(std::pair<int, int>  target) {
     applyValues();
 }
 
-int mapValue(int value, int inMin, int inMax, int outMin, int outMax) {
-    return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+int RoverControl::mapValue(float value, float inMin, float inMax, int outMin, int outMax) {
+        return static_cast<int>((value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin);
 }
 
 void RoverControl::applyValues() {
-    softPwmWrite(fwdPin, mapValue(Yval, 1, 1000, 0, 179));  // Map to servo range
-    softPwmWrite(turnPin, mapValue(Xval, 1, 1000, 179, 0)); // Map to servo range
+    std::cout<<"[DEBUG] Tval: "<<Yval <<" Xval: "<<Xval<<std::endl;
+    softPwmWrite(fwdPin,mapValue(Yval, 1.0f, 1000.0f, 5, 25));  // Map to servo range
+    //softPwmWrite(fwdPin,mapValue(Yval, 1.0f, 1000.0f, 0, 179));  // Map to servo range
+    std::cout <<"[DEBUGGGG]" << std::endl;
+    //softPwmWrite(turnPin, mapValue(Xval, 1.0f, 1000.0f, 179, 0)); // Map to servo range
+    std::this_thread::sleep_for(std::chrono::milliseconds(500)); 
 }

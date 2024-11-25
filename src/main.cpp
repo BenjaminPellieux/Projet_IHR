@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     PoseNet poseNet("model/Posenet-Mobilenet.onnx");
     YoloNet yoloNet("model/yolov4-tiny.cfg", "model/yolov4-tiny.weights");
     Rover myRover;
-    RoverControl roverControl(1, 2); // Use GPIO pins 1 and 2 for forward/turn
+    RoverControl roverControl(13, 12); // Use GPIO pins 1 and 2 for forward/turn
 
     if (!disableDisplay) {
         cv::namedWindow("Détection combinée", cv::WINDOW_NORMAL);
@@ -50,6 +50,11 @@ int main(int argc, char** argv) {
 
         myRover.updateStatusfromMove(poseNet.getGesture(), yoloNet.getBody());
 
+        std::pair<int, int> target = myRover.getTarget();
+        if ((myRover.getStatus() == Status::FOLLOW) && (target.second > -1) ){
+            //threadManager.runThread(&RoverControl::updateControl, &roverControl, std::ref(target));
+            roverControl.updateControl(target);
+        }
 
         auto frameEnd = std::chrono::steady_clock::now(); // Utilisation cohérente de steady_clock
         double frameProcessingTime = std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd - frameStart).count();

@@ -51,4 +51,6 @@ void Rover::updateStatusfromMove(Movement gesture, std::pair<int, int> new_targe
                   << "\nTarget: x" << target.first 
                   << " y" << target.second << std::endl;
     }
+
+
 }

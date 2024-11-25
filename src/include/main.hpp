@@ -87,11 +87,12 @@ class Rover {
         Rover();
         void updateStatusfromMove(Movement gesture, std::pair<int, int> target);
         std::pair<int, int> getTarget();
+        Status getStatus();
 
     private:
 
         void setStatus(Status newStatus);
-        Status getStatus();
+        
         std::string getStatusAsString();
 
         // Get the status as a string for easier display
@@ -106,16 +107,18 @@ class Rover {
 class RoverControl {
     public:
         RoverControl(int fwdPin, int turnPin);
-        void initialize();
+        ~RoverControl();
         void updateControl(std::pair<int, int> target);
 
     private:
         int fwdPin;
         int turnPin;
-        int Yval;
-        int Xval;
-        const int fwdIdle = 500; // Neutral position for forward/backward
-        const int trnIdle = 500; // Neutral position for turning
+        float Yval;
+        float Xval;
+        const float fwdIdle = 500.0f; // Neutral position for forward/backward
+        const float trnIdle = 500.0f; // Neutral position for turning
+        int mapValue(float value, float inMin, float inMax, int outMin, int outMax);
+
         void applyValues();
 };
 
