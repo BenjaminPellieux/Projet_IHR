@@ -43,6 +43,10 @@ int main(int argc, char** argv) {
         frame.copyTo(displayFrame);
         ThreadManager threadManager;
 
+        // poseNet.processFrame(frame, displayFrame);
+        // yoloNet.detectHumans(frame, displayFrame);
+
+
         threadManager.runThread(&PoseNet::processFrame, &poseNet, std::ref(frame), std::ref(displayFrame));
         threadManager.runThread(&YoloNet::detectHumans, &yoloNet, std::ref(frame), std::ref(displayFrame));
 
@@ -54,6 +58,8 @@ int main(int argc, char** argv) {
         if ((myRover.getStatus() == Status::FOLLOW) && (target.second > -1) ){
             //threadManager.runThread(&RoverControl::updateControl, &roverControl, std::ref(target));
             roverControl.updateControl(target);
+        }else {
+            roverControl.stopRover();            
         }
 
         auto frameEnd = std::chrono::steady_clock::now(); // Utilisation cohérente de steady_clock

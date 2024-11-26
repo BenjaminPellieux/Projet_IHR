@@ -11,6 +11,7 @@ RoverControl::RoverControl(int fwdPin, int turnPin){
     pinMode(turnPin, PWM_OUTPUT);
     softPwmCreate(fwdPin, 0, 200); // Create PWM for forward/backward control
     softPwmCreate(turnPin, 0, 200); // Create PWM for turning control
+    stopRover();
 }
 
 
@@ -49,11 +50,27 @@ int RoverControl::mapValue(float value, float inMin, float inMax, int outMin, in
         return static_cast<int>((value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin);
 }
 
+void RoverControl::stopRover() {
+    softPwmWrite(fwdPin, 0); // Neutral signal for stopping
+    softPwmWrite(turnPin, 0);
+    pwmWrite(fwdPin, 0);     // Optional: explicitly stop PWM signal
+    pwmWrite(turnPin, 0);
+
+    std::cout << "[INFO] Motors stopped completely." << std::endl;
+}
+
 void RoverControl::applyValues() {
     std::cout<<"[DEBUG] Tval: "<<Yval <<" Xval: "<<Xval<<std::endl;
-    softPwmWrite(fwdPin,mapValue(Yval, 1.0f, 1000.0f, 5, 25));  // Map to servo range
-    //softPwmWrite(fwdPin,mapValue(Yval, 1.0f, 1000.0f, 0, 179));  // Map to servo range
-    std::cout <<"[DEBUGGGG]" << std::endl;
-    //softPwmWrite(turnPin, mapValue(Xval, 1.0f, 1000.0f, 179, 0)); // Map to servo range
-    std::this_thread::sleep_for(std::chrono::milliseconds(500)); 
+    //softPwmWrite(fwdPin,mapValue(Yval, 1.0f, 1000.0f, 5, 25));  // Map to servo range
+    int dutyCycle = mapValue(Yval, 1.0f, 1000.0f, 5, 10);
+
+      // Debug output
+    std::cout << "[DEBUG] Yval: " << Yval 
+              << " | Duty Cycle: " << dutyCycle 
+              << "%" << std::endl;
+        
+    softPwmWrite(fwdPin,dutyCycle);  // Map to servo range
+
+    
+    // softPwmWrite(turnPin, mapValue(Xval, 1.0f, 1000.0f, 179, 0)); // Map to servo range}
 }

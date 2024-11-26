@@ -109,7 +109,7 @@ class RoverControl {
         RoverControl(int fwdPin, int turnPin);
         ~RoverControl();
         void updateControl(std::pair<int, int> target);
-
+        void stopRover();
     private:
         int fwdPin;
         int turnPin;
