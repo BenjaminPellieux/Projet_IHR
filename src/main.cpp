@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
         myRover.updateStatusfromMove(poseNet.getGesture(), yoloNet.getBody());
 
         std::pair<int, int> target = myRover.getTarget();
-        if ((myRover.getStatus() == Status::FOLLOW) && (target.second > -1) ){
+        if ((myRover.getStatus() == Status::FOLLOW)){
             //threadManager.runThread(&RoverControl::updateControl, &roverControl, std::ref(target));
             roverControl.updateControl(target);
         }else {
