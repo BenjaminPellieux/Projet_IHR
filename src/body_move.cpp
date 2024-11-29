@@ -16,9 +16,9 @@ PoseNet::PoseNet(const std::string& modelPath) {
                 {7, 9}, {11, 12}, {12, 14}, {14, 16}, {11, 13}, {13, 15}
             };
 }
-void PoseNet::processFrame(const cv::Mat& frame, cv::Mat& displayFrame) {
+void PoseNet::processFrame(const cv::Mat& frame, cv::Mat& displayFrame, Rover& roverStatus) {
     detectKeypoints(frame);
-    analyzePose();
+    analyzePose(roverStatus);
     std::string gesture_string = this->getMovementAsString();
     
 
@@ -59,35 +59,34 @@ void PoseNet::setGesture(Movement newMove){
     gesture = newMove;
 }
 
-void PoseNet::analyzePose() {
-    // Detect hands raised
+void PoseNet::analyzePose(Rover& roverStatus) {
+    // Detect hands raised  // Both hands raised
     if ((keypoints[9].y > 0 && keypoints[5].y > 0 && keypoints[9].y < keypoints[5].y) &&
         (keypoints[10].y > 0 && keypoints[6].y > 0 && keypoints[10].y < keypoints[6].y)) {
-        this->setGesture(Movement::HANDS_UP);  // Both hands raised
+        
+        roverStatus.setStatus(Status::DANCE);
 
     // Detect left hand raised
     } else if (keypoints[9].y > 0 && keypoints[5].y > 0 && keypoints[9].y < keypoints[5].y) {
-        this->setGesture(Movement::HAND_LEFT);
+        roverStatus.setStatus(Status::FOLLOW);
 
     // Detect right hand raised
     } else if (keypoints[10].y > 0 && keypoints[6].y > 0 && keypoints[10].y < keypoints[6].y) {
-        this->setGesture(Movement::HAND_RIGHT);
+        roverStatus.setStatus(Status::STOP);
 
     // Detect tilt right
     } else if (keypoints[5].x > 0 && keypoints[6].x > 0 &&
                keypoints[11].x > 0 && keypoints[12].x > 0 && 
                (keypoints[5].y - keypoints[6].y) > 50) {  // Right shoulder significantly higher
-        this->setGesture(Movement::TILT_RIGHT);
+        roverStatus.setStatus(Status::PARKING);
 
     // Detect tilt left
     } else if (keypoints[5].x > 0 && keypoints[6].x > 0 &&
                keypoints[11].x > 0 && keypoints[12].x > 0 && 
                (keypoints[6].y - keypoints[5].y) > 50) {  // Left shoulder significantly higher
-        this->setGesture(Movement::TILT_LEFT);
+        roverStatus.setStatus(Status::ERROR);
 
     // No specific gesture detected
-    } else {
-        this->setGesture(Movement::NONE);
     }
 }
 

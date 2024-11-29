@@ -13,10 +13,20 @@ int main(int argc, char** argv) {
         }
     }
 
+    int8_t newPriority = -10; // Valeur entre -20 (priorité maximale) et 19 (priorité minimale)
+
+    if (setpriority(PRIO_PROCESS, getpid(), newPriority) == 0) {
+        std::cout << "Priorité du processus définie à " << static_cast<int>(newPriority) << std::endl;
+    } else {
+        perror("Erreur lors de la définition de la priorité");
+        return EXIT_FAILURE;
+    }
+
     PoseNet poseNet("model/Posenet-Mobilenet.onnx");
     YoloNet yoloNet("model/yolov4-tiny.cfg", "model/yolov4-tiny.weights");
-    Rover myRover;
-    RoverControl roverControl(13, 12); // Use GPIO pins 1 and 2 for forward/turn
+    // RoverControl roverControl();
+    Rover roverStatus(13, 12);
+    // Use GPIO pins 1 and 2 for forward/turn
 
     if (!disableDisplay) {
         cv::namedWindow("Détection combinée", cv::WINDOW_NORMAL);
@@ -25,13 +35,12 @@ int main(int argc, char** argv) {
     cv::VideoCapture cap(0);
     if (!cap.isOpened()) {
         std::cerr << "Erreur : Impossible d'ouvrir la caméra !" << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
     cv::Mat frame, displayFrame;
     int frameCount = 0;
     double totalProcessingTime = 0.0;
-
     auto startTime = std::chrono::steady_clock::now();
     while (true) {
 
@@ -41,26 +50,21 @@ int main(int argc, char** argv) {
         if (frame.empty()) break;
 
         frame.copyTo(displayFrame);
-        ThreadManager threadManager;
+        auto poseNetFuture = std::async(std::launch::async, &PoseNet::processFrame, &poseNet, std::ref(frame), std::ref(displayFrame), std::ref(roverStatus));
+        auto yoloNetFuture = std::async(std::launch::async, &YoloNet::detectHumans, &yoloNet, std::ref(frame), std::ref(displayFrame), std::ref(roverStatus));
 
-        // poseNet.processFrame(frame, displayFrame);
-        // yoloNet.detectHumans(frame, displayFrame);
+        // Attendre que les deux tâches soient terminées
+        poseNetFuture.get();
+        yoloNetFuture.get();
+        //myRover.updateStatusfromMove(poseNet.getGesture(), yoloNet.getBody());
 
-
-        threadManager.runThread(&PoseNet::processFrame, &poseNet, std::ref(frame), std::ref(displayFrame));
-        threadManager.runThread(&YoloNet::detectHumans, &yoloNet, std::ref(frame), std::ref(displayFrame));
-
-        threadManager.waitForThreads();
-
-        myRover.updateStatusfromMove(poseNet.getGesture(), yoloNet.getBody());
-
-        std::pair<int, int> target = myRover.getTarget();
-        if ((myRover.getStatus() == Status::FOLLOW)){
-            //threadManager.runThread(&RoverControl::updateControl, &roverControl, std::ref(target));
-            roverControl.updateControl(target);
-        }else {
-            roverControl.stopRover();            
-        }
+        // std::pair<int, int> target = roverStatus.getTarget();
+        // if ((roverStatus.getStatus() == Status::FOLLOW)){
+        //     //threadManager.runThread(&RoverControl::updateControl, &roverControl, std::ref(target));
+        //     roverControl.updateControl(target, frame);
+        // }else {
+        //     roverControl.stopRover();            
+        // }
 
         auto frameEnd = std::chrono::steady_clock::now(); // Utilisation cohérente de steady_clock
         double frameProcessingTime = std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd - frameStart).count();

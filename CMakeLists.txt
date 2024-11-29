@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 project(Projet_IHR)
 
 # Définir le standard C++
-set(CMAKE_CXX_STANDARD 17)
-
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -58,8 +58,7 @@ endif()
 add_executable(main src/main.cpp 
                     src/body_pose.cpp 
                     src/body_move.cpp 
-                    src/rover_control.cpp
-                    src/rover_status.cpp)
+                    src/rover_control.cpp)
 
 
 

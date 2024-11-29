@@ -1,20 +1,62 @@
 #include "include/main.hpp"
 
 
-RoverControl::RoverControl(int fwdPin, int turnPin){
+Rover::Rover(u_int8_t fwdPin, u_int8_t turnPin){
+    this->roverControl = new RoverControl(fwdPin, turnPin);
+    this->status = Status::STOP;
+    this->target = (std::pair<int, int>) {0, 0};
+    this->theta = 0;
+}
+
+void Rover::setStatus(Status newStatus) {
+    this->status = newStatus;
+}
+
+Status Rover::getStatus(){
+    return status;
+}
+
+std::pair<int, int> Rover::getTarget(){
+    return target;
+}
+
+std::string Rover::getStatusAsString() {
+    switch (status) {
+        case Status::FOLLOW: return "FOLLOW";
+        case Status::STOP: return "STOP";
+        case Status::DANCE: return "DANCE";
+        case Status::PARKING: return "PARKING";
+        case Status::ERROR: return "ERROR";
+        default: return "UNKNOWN";
+    }
+}
+
+void Rover::setTarget(std::pair<int, int> newtarget){
+    this->target = newtarget;
+}
+
+void Rover::setTheta(double newangle){
+    this->theta = newangle;    
+}
+
+
+////////////////////////////////////////
+//             Rover Control          //
+////////////////////////////////////////
+
+RoverControl::RoverControl(u_int8_t fwdPin, u_int8_t turnPin){
     this->fwdPin = fwdPin;
     this->turnPin = turnPin;
-    Yval = fwdIdle; Xval = trnIdle; 
+    Yval = NEUTRALPOS; Xval = NEUTRALPOS; 
 
     wiringPiSetupGpio(); // Initialize wiringPi library
     pinMode(fwdPin, PWM_OUTPUT);
     pinMode(turnPin, PWM_OUTPUT);
-    digitalWrite(fwdPin, LOW);
-    digitalWrite(turnPin, LOW);
     softPwmCreate(fwdPin, 0, 200); // Create PWM for forward/backward control
     softPwmCreate(turnPin, 0, 200); // Create PWM for turning control
     stopRover();
 }
+
 
 
 RoverControl::~RoverControl() {
@@ -22,63 +64,62 @@ RoverControl::~RoverControl() {
     softPwmWrite(turnPin, 0);
     std::cout << "Nettoyage des ressources GPIO." << std::endl;
 }
-void RoverControl::updateControl(std::pair<int, int> target) {
-    // Map Yval (forward/backward)
+void RoverControl::updateControl(std::pair<int, int> target, cv::Mat& frame) {
+    // Map Yval (forward/backward) to the range [15, 18]
     if (target.second > 0) {
-        // Forward movement
-        Yval = std::min(1000, (int)fwdIdle + (target.second * 5)); 
+        Yval = mapValue(static_cast<float>(target.second), 0.0f, static_cast<float>(frame.rows));
     } else {
-        // Stop (neutral)
-        Yval = fwdIdle;
+        Yval = NEUTRALPOS; // NEUTRALPOS or stop (minimum forward)
     }
 
-    // Map Xval (turning)
+    // Map Xval (turning) to the range [12, 18]
     if (target.first > 0) {
         // Right turn
-        Xval = std::min(1000, (int)trnIdle + (target.first * 5)); 
+        Xval = mapValue(static_cast<float>(target.first), 0.0f, static_cast<float>(frame.cols) / 2);
+
     } else if (target.first < 0) {
         // Left turn
-        Xval = std::max(1, (int)trnIdle + (target.first * 5));
+        Xval = mapValue(static_cast<float>(target.first), static_cast<float>(-frame.cols) / 2, 0.0f);
     } else {
-        // Neutral turning
-        Xval = trnIdle;
+        Xval = NEUTRALPOS; // NEUTRALPOS turning
     }
 
     // Apply updated values to motors
     applyValues();
 }
 
-int RoverControl::mapValue(float value, float inMin, float inMax, int outMin, int outMax) {
-    return static_cast<int>((value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin);
+// Helper function to map a value from one range to another
+float RoverControl::mapValue(float value, float inMin, float inMax) {
+    return static_cast<int>((value - inMin) * (MAXSPEED - MINSPEED) / (inMax - inMin) + MINSPEED);
 }
 
-void RoverControl::stopRover() {
-    // Map neutral position (1.5 ms pulse width)
-    int neutralDutyCycle = mapValue(fwdIdle, 1.0f, 1000.0f, 75, 150); 
 
-    // Apply neutral position to stop the rover
-    softPwmWrite(fwdPin, 14.5); 
+void RoverControl::stopRover() {
+
+    // Apply NEUTRALPOS position to stop the rover
+    softPwmWrite(fwdPin, NEUTRALPOS); 
+    softPwmWrite(turnPin, NEUTRALPOS); 
     //softPwmWrite(turnPin, 15); 
 
-    std::cout << "[INFO] Wheels stopped at neutral position (1.5 ms)." << std::endl;
+    std::cout << "[INFO] Wheels stopped at NEUTRALPOS position ."<< NEUTRALPOS << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(20)); // Délai pour permettre au servo de se stabiliser
 
 }
 
 void RoverControl::applyValues() {
     // Map Yval to duty cycle for forward/backward motion
-    int forwardDutyCycle = mapValue(Yval, 1.0f, 1000.0f, 10, 20); 
+    // int forwardDutyCycle = mapValue(Yval, 1.0f, 1000.0f, 10, 20); 
 
-    // Map Xval to duty cycle for turning
-    int turnDutyCycle = mapValue(Xval, 1.0f, 1000.0f, 10, 20); 
+    // // Map Xval to duty cycle for turning
+    // int turnDutyCycle = mapValue(Xval, 1.0f, 1000.0f, 10, 20); 
 
     // Debugging information
-    std::cout << "[DEBUG] Forward Duty Cycle: " << Yval / 50 
-              << " | Turning Duty Cycle: " << turnDutyCycle << std::endl;
+    std::cout << "[DEBUG] Forward Duty Cycle: " << Yval
+              << " | Turning Duty Cycle: " << Xval << std::endl;
 
     // Apply calculated duty cycles
-    softPwmWrite(fwdPin, Yval / 50); 
-    //softPwmWrite(turnPin, turnDutyCycle); 
+    softPwmWrite(fwdPin, Yval); 
+    //softPwmWrite(turnPin, Xval); 
     std::this_thread::sleep_for(std::chrono::milliseconds(20)); // Délai pour permettre au servo de se stabiliser
 
 }
