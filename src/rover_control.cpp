@@ -39,6 +39,13 @@ void Rover::setTheta(double newangle){
     this->theta = newangle;    
 }
 
+void Rover::move(cv::Mat& frame){
+    if (this->status == Status::FOLLOW)
+        this->roverControl->updateControl(this->target, this->theta, frame);
+    else{
+        this->roverControl->stopRover();
+    }
+}
 
 ////////////////////////////////////////
 //             Rover Control          //
@@ -64,7 +71,7 @@ RoverControl::~RoverControl() {
     softPwmWrite(turnPin, 0);
     std::cout << "Nettoyage des ressources GPIO." << std::endl;
 }
-void RoverControl::updateControl(std::pair<int, int> target, cv::Mat& frame) {
+void RoverControl::updateControl(std::pair<int, int> target, double theta, cv::Mat& frame) {
     // Map Yval (forward/backward) to the range [15, 18]
     if (target.second > 0) {
         Yval = mapValue(static_cast<float>(target.second), 0.0f, static_cast<float>(frame.rows));
@@ -73,13 +80,14 @@ void RoverControl::updateControl(std::pair<int, int> target, cv::Mat& frame) {
     }
 
     // Map Xval (turning) to the range [12, 18]
-    if (target.first > 0) {
+    if (theta >  25.0f) {
         // Right turn
-        Xval = mapValue(static_cast<float>(target.first), 0.0f, static_cast<float>(frame.cols) / 2);
 
-    } else if (target.first < 0) {
+        Xval = mapValue(theta, 0.0f, 45.0f);
+
+    } else if (theta < -25.0f) {
         // Left turn
-        Xval = mapValue(static_cast<float>(target.first), static_cast<float>(-frame.cols) / 2, 0.0f);
+        Xval = abs(mapValue(theta, -45.0f, 0.0f));
     } else {
         Xval = NEUTRALPOS; // NEUTRALPOS turning
     }

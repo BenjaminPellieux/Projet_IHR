@@ -32,7 +32,7 @@ class RoverControl {
     public:
         RoverControl(u_int8_t fwdPin, u_int8_t turnPin);
         ~RoverControl();
-        void updateControl(std::pair<int, int> target,  cv::Mat& frame);
+        void updateControl(std::pair<int, int> target, double theta,  cv::Mat& frame);
         void stopRover();
     private:
         u_int8_t fwdPin;
@@ -49,14 +49,16 @@ class Rover {
     public:
 
         Rover(u_int8_t fwdPin,  u_int8_t turnPin);
-        void updateStatusfromMove(Movement gesture, std::pair<int, int> target);
         std::pair<int, int> getTarget();
         Status getStatus();
         void setStatus(Status newStatus);
         void setTarget(std::pair<int, int> newtarget);
         void setTheta(double newangle);
+        
+        void move(cv::Mat& frame);
 
     private:
+
 
         RoverControl* roverControl;
         

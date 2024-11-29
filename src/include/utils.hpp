@@ -5,8 +5,8 @@
 #define MAXBODYAREA 0.40
 #define MINBODYAREA 0.05
 #define NEUTRALPOS 14.9
-#define MAXSPEED 17
-#define MINSPEED 13
+#define MAXSPEED 20
+#define MINSPEED 10
 enum class Status {
     FOLLOW,
     STOP,

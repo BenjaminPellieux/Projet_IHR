@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
         // Attendre que les deux tâches soient terminées
         poseNetFuture.get();
         yoloNetFuture.get();
-        //myRover.updateStatusfromMove(poseNet.getGesture(), yoloNet.getBody());
+        auto roverMoveFuture = std::async(std::launch::async, &Rover::move, &roverStatus, std::ref(frame));
 
         // std::pair<int, int> target = roverStatus.getTarget();
         // if ((roverStatus.getStatus() == Status::FOLLOW)){
