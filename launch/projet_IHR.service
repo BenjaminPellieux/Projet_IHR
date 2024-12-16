@@ -1,0 +1,18 @@
+[Unit]
+Description=ROS2 Projet IHR Services
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+User=ros
+Group=ros
+Environment="DISPLAY=:0"
+ExecStart=/home/ros/Projet_IHR/launch/projet_IHR_launch.sh
+Restart=on-failure
+RestartSec=2s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
